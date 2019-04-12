@@ -16,12 +16,12 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
      * @param context object to evaluate against
      */
     public void process(XWPFParagraph paragraph, Object context) {
-        RunProcessor runProcessor = new RunProcessor();
-        ExpresionHandler expressions = findExpression(paragraph);
-        while (!expressions.isEmpty()) {
-            XWPFRun runWithExpression = collapseExpressionRuns(paragraph, expressions);
-            runProcessor.process(runWithExpression, context);
-            expressions = findExpression(paragraph);
+        ExpresionHandler expressionRuns = findExpression(paragraph);
+        while (!expressionRuns.isEmpty()) {
+            RunProcessor runProcessor = new RunProcessor();
+            XWPFRun singleRunWithExpression = collapseExpressionRuns(paragraph, expressionRuns);
+            runProcessor.process(singleRunWithExpression, context);
+            expressionRuns = findExpression(paragraph);
         }
     }
 
@@ -34,13 +34,12 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
 
     public XWPFRun collapseExpressionRuns(XWPFParagraph paragraph, ExpresionHandler expressions) {
         XWPFRun expressionStartRun = getRunWithExpressionStart(paragraph, expressions);
-        if (expressions.isEmpty()) {
+        if (expressions.size() == 1) {
             if (expressionStartRun.text().indexOf("}") == expressionStartRun.text().length() - 1)
                 return  expressionStartRun;
             RunUtils.splitRun(paragraph, expressionStartRun, expressionStartRun.text().indexOf("}") + 1);
             return expressionStartRun;
         } else {
-            expressions.add(0, expressionStartRun);
             trimLastRun(paragraph, expressions);
             XWPFRun longestRun = getLongestRun(expressions);
             RunUtils.copyStyle(longestRun, expressionStartRun);
@@ -73,17 +72,19 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
 
     /**
      * Returns run that starts with "${"
-     * @apiNote removes first run from ExpresionHandler
      * @param paragraph paragraph containing runs
      * @param expressions runs containing expresion
      * @return run that starts with "${"
      */
     private static XWPFRun getRunWithExpressionStart(XWPFParagraph paragraph, ExpresionHandler expressions) {
-        XWPFRun firstRun = expressions.remove(0);
+        XWPFRun firstRun = expressions.get(0);
         int expressionStartIndex = firstRun.text().indexOf("${");
         if (expressionStartIndex < 0) throw new ParsingException("First run of expression handler should contain \"${\".");
         if (expressionStartIndex > 0) {
-            return RunUtils.splitRun(paragraph, firstRun, expressionStartIndex);
+            XWPFRun splitedRun = RunUtils.splitRun(paragraph, firstRun, expressionStartIndex);
+            expressions.remove(firstRun);
+            expressions.add(0, splitedRun);
+            return splitedRun;
         } else {
             return firstRun;
         }
