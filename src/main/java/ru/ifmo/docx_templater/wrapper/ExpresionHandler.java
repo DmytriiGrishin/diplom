@@ -20,14 +20,14 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 public class ExpresionHandler implements List<XWPFRun> {
 
     private List<XWPFRun> runs = new ArrayList<>();
-    private boolean compliteExpression = false;
+    private boolean completeExpression = false;
 
     /**
      * Return true if "}" was met in added runs
      * @return true if "}" was met in added runs
      */
-    public boolean isCompliteExpression() {
-        return compliteExpression;
+    public boolean isCompleteExpression() {
+        return completeExpression;
     }
 
     /**
@@ -55,7 +55,7 @@ public class ExpresionHandler implements List<XWPFRun> {
     @Override
     public boolean add(XWPFRun xwpfRun) {
         if (xwpfRun.text().contains("}")) {
-            compliteExpression = true;
+            completeExpression = true;
         }
         return runs.add(xwpfRun);
     }
@@ -136,7 +136,7 @@ public class ExpresionHandler implements List<XWPFRun> {
                 .map(XWPFRun::text)
                 .anyMatch((text) -> text.contains("}"))
         ) {
-            compliteExpression = true;
+            completeExpression = true;
         }
         return runs.addAll(c);
     }

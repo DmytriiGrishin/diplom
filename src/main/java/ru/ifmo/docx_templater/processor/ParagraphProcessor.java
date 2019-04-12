@@ -10,6 +10,11 @@ import ru.ifmo.docx_templater.wrapper.ExpresionHandler;
 
 public class ParagraphProcessor implements Processor<XWPFParagraph> {
 
+    /**
+     * Evaluates all expressions in paragraph against context
+     * @param paragraph paragraph to lookup for expressions
+     * @param context object to evaluate against
+     */
     public void process(XWPFParagraph paragraph, Object context) {
         RunProcessor runProcessor = new RunProcessor();
         ExpresionHandler expressions = findExpression(paragraph);
@@ -19,6 +24,13 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
             expressions = findExpression(paragraph);
         }
     }
+
+    /**
+     * Collapses runs to single run, starting with expresion start placeholder and ending with expression end placeholder
+     * @param paragraph paragraph with runs
+     * @param expressions list of runs to collapse
+     * @return run with expression
+     */
 
     public XWPFRun collapseExpressionRuns(XWPFParagraph paragraph, ExpresionHandler expressions) {
         XWPFRun expressionStartRun = getRunWithExpressionStart(paragraph, expressions);
@@ -36,6 +48,11 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
         }
     }
 
+    /**
+     * Splits last run in expressions so it would end with "}"
+     * @param paragraph paragraph with run
+     * @param expressions list of runs
+     */
     private void trimLastRun(XWPFParagraph paragraph, ExpresionHandler expressions) {
         XWPFRun lastRun = expressions.remove(expressions.size() - 1);
         if (!lastRun.text().endsWith("}")) {
@@ -84,7 +101,7 @@ public class ParagraphProcessor implements Processor<XWPFParagraph> {
             XWPFRun run = runIterator.next();
             if (run.text().contains("${")) {
                 expresionHandler.add(run);
-                while (!expresionHandler.isCompliteExpression() && runIterator.hasNext()) {
+                while (!expresionHandler.isCompleteExpression() && runIterator.hasNext()) {
                     expresionHandler.add(runIterator.next());
                 }
                 break;

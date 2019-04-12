@@ -6,6 +6,15 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTString;
 
 public class RunUtils {
+
+    /**
+     * Splits run text at index, adding new run right after current with same style.
+     * @param paragraph paragraph with run
+     * @param run run to split
+     * @param at index in run text to split
+     * @return new run
+     */
+
     public static XWPFRun splitRun(XWPFParagraph paragraph, XWPFRun run, int at) {
         XWPFRun newRun;
         int i = paragraph.getRuns().indexOf(run);
@@ -17,6 +26,11 @@ public class RunUtils {
         return newRun;
     }
 
+    /**
+     * Copies style from one run to another
+     * @param from run to copy from
+     * @param to run to copy to
+     */
     public static void copyStyle(XWPFRun from, XWPFRun to) {
         CTRPr rPr = from.getCTR().getRPr();
         if (rPr != null) {
@@ -33,6 +47,12 @@ public class RunUtils {
         ctrPr.set(from.getCTR().getRPr());
     }
 
+    /**
+     * Concats runs by adding all text of right run to left run and setting right run text to empty string
+     * @param left run to contain all text
+     * @param right run to be empty
+     * @return left run
+     */
     public static XWPFRun concatRuns(XWPFRun left, XWPFRun right) {
         left.setText(left.text() + right.text(), 0);
         right.setText("", 0);
