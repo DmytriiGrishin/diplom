@@ -17,7 +17,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 /**
  * Hold multiple runs containing expression
  */
-public class ExpresionHandler implements List<XWPFRun> {
+public class ExpresionRuns implements List<XWPFRun> {
 
     private List<XWPFRun> runs = new ArrayList<>();
     private boolean completeExpression = false;
