@@ -31,18 +31,18 @@ public class ParagraphTest {
         assertEquals(1, expresionRuns.size());
         assertEquals(expression, expresionRuns.get(0).text());
     }
-
-    @Test
-    public void collapseMultipleExpressionInSingleRun() {
-        XWPFDocument document = new XWPFDocument();
-        XWPFParagraph xwpfParagraph = document.createParagraph();
-        Paragraph paragraph = new Paragraph(xwpfParagraph);
-        String expression = "${name} ${age}";
-        xwpfParagraph.createRun().setText(expression);
-        ExpresionRuns expresionRuns = paragraph.findExpression();
-        paragraph.collapseExpressionRuns(expresionRuns);
-
-    }
+//
+//    @Test
+//    public void collapseMultipleExpressionInSingleRun() {
+//        XWPFDocument document = new XWPFDocument();
+//        XWPFParagraph xwpfParagraph = document.createParagraph();
+//        Paragraph paragraph = new Paragraph(xwpfParagraph);
+//        String expression = "${name} ${age}";
+//        xwpfParagraph.createRun().setText(expression);
+//        ExpresionRuns expresionRuns = paragraph.findExpression();
+//        paragraph.collapseExpressionRuns(expresionRuns);
+//
+//    }
 
     @Test
     public void findExpressionInMultipleRuns() {
@@ -58,23 +58,23 @@ public class ParagraphTest {
         assertEquals(expression, expresionRuns.stream().map(XWPFRun::text).reduce(String::concat).orElse(""));
     }
 
-    @Test
-    public void collapseRunsTest() {
-        XWPFDocument document = new XWPFDocument();
-        XWPFParagraph xwpfParagraph = document.createParagraph();
-        String expression = "${name}";
-        XWPFRun boldRun = xwpfParagraph.createRun();
-        boldRun.setText("${");
-        boldRun.setBold(true);
-        xwpfParagraph.createRun().setText("name");
-        Paragraph paragraph = new Paragraph(xwpfParagraph);
-        xwpfParagraph.createRun().setText("}");
-        ExpresionRuns expresionRuns = paragraph.findExpression();
-        paragraph.collapseExpressionRuns(expresionRuns);
-        assertEquals(1, xwpfParagraph.getRuns().size());
-        assertEquals(expression, xwpfParagraph.getRuns().get(0).text());
-        assertEquals(true, xwpfParagraph.getRuns().get(0).isBold());
-    }
+//    @Test
+//    public void collapseRunsTest() {
+//        XWPFDocument document = new XWPFDocument();
+//        XWPFParagraph xwpfParagraph = document.createParagraph();
+//        String expression = "${name}";
+//        XWPFRun boldRun = xwpfParagraph.createRun();
+//        boldRun.setText("${");
+//        boldRun.setBold(true);
+//        xwpfParagraph.createRun().setText("name");
+//        Paragraph paragraph = new Paragraph(xwpfParagraph);
+//        xwpfParagraph.createRun().setText("}");
+//        ExpresionRuns expresionRuns = paragraph.findExpression();
+//        paragraph.collapseExpressionRuns(expresionRuns);
+//        assertEquals(1, xwpfParagraph.getRuns().size());
+//        assertEquals(expression, xwpfParagraph.getRuns().get(0).text());
+//        assertEquals(true, xwpfParagraph.getRuns().get(0).isBold());
+//    }
 
 //    @Test
 //    public void replaceInSingleRun() {

@@ -1,9 +1,18 @@
 package ru.ifmo.docx_templater.wrapper;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.xmlbeans.XmlTokenSource;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTMarkup;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTMarkupRange;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.w3c.dom.Node;
 import ru.ifmo.docx_templater.exceptions.ParsingException;
 import ru.ifmo.docx_templater.util.RunUtils;
 
@@ -12,12 +21,65 @@ public class Paragraph  {
     private XWPFParagraph paragraph;
     private Document document;
 
+    public XWPFParagraph getParagraph() {
+        return paragraph;
+    }
+
+    public void removeComment(Comment comment) {
+        String commentId = comment.getId();
+        CTP ctp = paragraph.getCTP();
+        removeCommentRange(commentId, ctp, ctp.getCommentRangeStartList());
+        removeCommentRange(commentId, ctp, ctp.getCommentRangeEndList());
+        removeCommentReference(commentId);
+    }
+
+    private void removeCommentReference(String commentId) {
+        for (XWPFRun run : paragraph.getRuns()) {
+            Node runNode = run.getCTR().getDomNode();
+            Node child = runNode.getFirstChild();
+            while (child != null) {
+                if (child.getLocalName().equals("commentReference")
+                    && child.getAttributes().getNamedItem("w:id").getNodeValue().equals(commentId)) {
+                    runNode.removeChild(child);
+                }
+                child = child.getNextSibling();
+            }
+        }
+    }
+
+    private void removeCommentRange(String commentId, CTP ctp, List<CTMarkupRange> commentRangelist) {
+        Optional<Node> commentBorder = commentRangelist.stream()
+                .map(XmlTokenSource::getDomNode)
+                .filter(domNode ->
+                        domNode.getAttributes().getNamedItem("w:id").getNodeValue().equals(commentId))
+                .findAny();
+        if (commentBorder.isPresent()) {
+            ctp.getDomNode().removeChild(commentBorder.get());
+        }
+    }
+
+    public boolean isContainingComment(Comment comment) {
+        return paragraph.getCTP().getCommentRangeStartList().stream()
+                .map(CTMarkupRange::getDomNode)
+                .map(Node::getAttributes)
+                .map(attributes -> attributes.getNamedItem("w:id"))
+                .map(Node::getNodeValue)
+                .anyMatch(comment.getId()::equals)
+                ||
+                paragraph.getCTP().getCommentRangeEndList().stream()
+                        .map(CTMarkupRange::getDomNode)
+                        .map(Node::getAttributes)
+                        .map(attributes -> attributes.getNamedItem("w:id"))
+                        .map(Node::getNodeValue)
+                        .anyMatch(comment.getId()::equals);
+
+    }
+
     public Paragraph(XWPFParagraph paragraph) {
         this.paragraph =  paragraph;
     }
 
     public void fixRuns() {
-
         ExpresionRuns expression = findExpression();
         while (!expression.isEmpty()) {
             collapseExpressionRuns(expression);

@@ -9,11 +9,4 @@ import java.io.InputStream;
 
 class DocumentTest {
 
-    @Test
-    void testCommentsHarvesting() throws IOException {
-        InputStream template = this.getClass().getResourceAsStream("multipleComments.docx");
-        XWPFDocument xwpfDocument = new XWPFDocument(template);
-        Document document = new Document(xwpfDocument);
-        document.getComments();
-    }
 }

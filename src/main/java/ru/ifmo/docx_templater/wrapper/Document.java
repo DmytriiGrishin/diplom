@@ -2,11 +2,13 @@ package ru.ifmo.docx_templater.wrapper;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.xmlbeans.XmlCursor;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
+import ru.ifmo.docx_templater.config.Config;
+import ru.ifmo.docx_templater.processor.comment.ICommentProcessor;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
@@ -15,8 +17,10 @@ public class Document {
     private XWPFDocument document;
     private List<Paragraph> paragraphs;
     private Map<String, Comment> comments;
+    private Config config;
 
-    public Document(XWPFDocument document) {
+    public Document(XWPFDocument document, Config config) {
+        this.config = config;
         this.document = document;
         paragraphs = document.getParagraphs().stream()
                 .map(Paragraph::new)
@@ -73,7 +77,23 @@ public class Document {
         this.comments = comments;
     }
 
-    public <T> void processParagraphComments(T contextRoot) {
-
+    public <T> void processParagraphComments(T context) {
+        Set<String> placeholders = config.getParagraphProcessors().keySet();
+        List<Comment> paragraphComments = comments.values()
+                .stream()
+                .filter(comment -> placeholders.contains(comment.getText().split("\\(")[0]))
+                .collect(toList());
+        for (Paragraph paragraph : paragraphs) {
+            CTP ctp = paragraph.getParagraph().getCTP();
+            paragraphComments.stream().filter(paragraph::isContainingComment).forEach(comment -> {
+                String placeholder = comment.getText().split("\\(")[0];
+                try {
+                    ICommentProcessor commentProcessor = config.getParagraphProcessors().get(placeholder).get(0).newInstance();
+                    commentProcessor.process(paragraph, comment, context);
+                } catch (InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 }

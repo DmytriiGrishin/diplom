@@ -8,6 +8,11 @@ public class Comment {
     private XmlCursor startCursor;
     private XmlCursor endCursor;
 
+    public boolean isSurounding(XmlCursor cursor) {
+        return startCursor.comparePosition(cursor) <= 0
+                && endCursor.comparePosition(cursor) >= 0;
+    }
+
     public Comment(XWPFComment comment) {
         this.comment = comment;
     }
